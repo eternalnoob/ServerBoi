@@ -1,0 +1,21 @@
+{
+    "Servers" : {
+        "Game": "valheim",
+        "Name": "server_name",
+        "Server_Info": {
+
+        },
+        "Service": "aws",
+        "Service_Info": {
+            "Account": "account#",
+            "Region": "us-west-2",
+            "InstanceId": ""
+        }
+    },
+    "Metadata" : {
+        "Operations_Account": "account#",
+        "Supported_Games": [
+            "vaiheim"
+        ]
+    }
+}
