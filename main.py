@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import lib.message_routing as routing
+import lib.service_classes as services
 
 # Load Discord token
 load_dotenv()
@@ -12,8 +13,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 # Start Discord client
 client = discord.Client()
 
-config = load_config()
-command_dict = routing.get_command_dict()
+server_set = {}
 
 
 def load_config():
@@ -22,7 +22,18 @@ def load_config():
     return config
 
 
-# Main loop
+def create_server_object(server_id, server):
+    if server["Service"] == "aws":
+        server = services.aws_server(server_id, **server)
+    elif server["Service"] == "gcp":
+        server = services.gcp_server(server_id, **server)
+    elif server["Service"] == "azure":
+        server = services.azure_server(server_id, **server)
+
+    return server
+
+
+# Main loops
 def main():
 
     event_loop = asyncio.get_event_loop()
@@ -68,10 +79,11 @@ async def on_message(message):
         return
 
     message.content = message.content.lower()
-    command = message.content.split(" ")[0]
+    message_split = message.content.split(" ")
+    command = message_split[0]
 
     if command in command_dict.keys():
-        msg = command_dict[command].read_command(message)
+        msg = command_dict[command].read_command(message_split, server_set)
         msg.format(message)
         await message.channel.send(msg)
     else:
@@ -81,4 +93,16 @@ async def on_message(message):
 
 
 if __name__ == "__main__":
+    config = load_config()
+    servers = config["Servers"]
+
+    server_id = 0
+
+    for server_entry in servers:
+        print(server_entry)
+        server_object = create_server_object(server_id, server_entry)
+        server_set[str(server_id)] = server_object
+        server_id += 1
+
+    command_dict = routing.get_command_dict()
     main()

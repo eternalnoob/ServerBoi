@@ -13,53 +13,52 @@ from azure.mgmt.network import NetworkManagementClient
 
 
 class server_object(object):
-    def __init__(self, game, name, server_info, service):
+    def __init__(self, server_id, Game, Name, ServerInfo, Service, ServiceInfo):
 
-        self.game = game
+        self.server_id = server_id
 
-        self.server_name = name
+        self.game = Game
 
-        self.server_info = server_info
+        self.server_name = Name
 
-        self.service = service
+        self.server_info = ServerInfo
 
-    @classmethod
-    def obj_from_json(cls, json_data):
+        self.service = Service
 
-        json_dict = json.loads(json_data)
-
-        return cls(**json_dict)
-
-    @staticmethod
-    def openServerFile():
-
-        current = Path(__file__).parent
-
-        filename = "serverList.json"
-
-        path = (current / filename).resolve()
-
-        with open(path, "r") as serverFile:
-
-            loadedFile = json.loads(serverFile.read())
-
-            return loadedFile
+        self.service_info = ServerInfo
 
 
 class aws_server(server_object):
-    def __init__(self, game, name, server_info, service, instance_id, region):
+    def __init__(self, server_id, Game, Name, ServerInfo, Service, ServiceInfo):
 
-        super().__init__(game, name, server_info, service)
+        super().__init__(server_id, Game, Name, ServerInfo, Service, ServiceInfo)
 
-        self.instance_id = instance_id
+        self.instance_id = ServiceInfo["InstanceId"]
 
-        self.region = region
+        self.region = ServiceInfo["Region"]
+
+        self.account_id = ServiceInfo["AccountId"]
 
         self.get_server_instance_object()
 
     def get_server_instance_object(self):
 
-        ec2 = boto3.resource("ec2", region_name=self.region)
+        sts_client = boto3.client("sts")
+
+        assumed_role_object = sts_client.assume_role(
+            RoleArn=f"arn:aws:iam::{self.account_id}:role/ServerBoiRole",
+            RoleSessionName="ServerBoiSession",
+        )
+
+        credentials = assumed_role_object["Credentials"]
+
+        ec2 = boto3.resource(
+            "ec2",
+            region_name=self.region,
+            aws_access_key_id=credentials["AccessKeyId"],
+            aws_secret_access_key=credentials["SecretAccessKey"],
+            aws_session_token=credentials["SessionToken"],
+        )
 
         self.instance = ec2.Instance(self.instance_id)
 
@@ -101,10 +100,6 @@ class aws_server(server_object):
 
         if action == "status":
 
-            ec2 = boto3.resource("ec2", region_name=self.region)
-
-            self.instance = ec2.Instance(self.instance_id)
-
             return self.instance.state["Name"]
 
     def refresh_public_ip(self):
@@ -113,15 +108,15 @@ class aws_server(server_object):
 
 
 class gcp_server(server_object):
-    def __init__(self, game, name, server_info, service, Project, instance_name, Zone):
+    def __init__(self, server_id, Game, Name, ServerInfo, Service, ServiceInfo):
 
-        super().__init__(game, name, server_info, service)
+        super().__init__(server_id, Game, Name, ServerInfo, Service, ServiceInfo)
 
-        self.project = Project
+        self.project = ServiceInfo["Project"]
 
-        self.instance_name = instance_name
+        self.instance_name = ServiceInfo["InstanceName"]
 
-        self.zone = Zone
+        self.zone = ServiceInfo["Zone"]
 
         self.service_client = self.google_request_client()
 
@@ -185,9 +180,9 @@ class gcp_server(server_object):
 
         try:
 
-            natIP = response["networkInterfaces"][0]["accessConfigs"][0]["natIP"]
+            nat_ip = response["networkInterfaces"][0]["accessConfigs"][0]["natIP"]
 
-            return natIP
+            return nat_ip
 
         except:
 
@@ -195,27 +190,17 @@ class gcp_server(server_object):
 
 
 class azure_server(server_object):
-    def __init__(
-        self,
-        game,
-        name,
-        server_info,
-        service,
-        subscription_id,
-        group_name,
-        location,
-        vm_name,
-    ):
+    def __init__(self, server_id, Game, Name, ServerInfo, Service, ServiceInfo):
 
-        super().__init__(game, name, server_info, service)
+        super().__init__(server_id, Game, Name, ServerInfo, Service, ServiceInfo)
 
-        self.subscription_id = subscription_id
+        self.subscription_id = ServiceInfo["SubscriptionId"]
 
-        self.vm_name = vm_name
+        self.vm_name = ServiceInfo["VmName"]
 
-        self.location = location
+        self.location = ServiceInfo["Location"]
 
-        self.group_name = group_name
+        self.group_name = ServiceInfo["GroupName"]
 
         self.credentials = self.azure_credentials()
 
@@ -300,8 +285,8 @@ class azure_server(server_object):
 
     def refresh_public_ip(self):
 
-        ipQuery = self.network_client.public_ip_addresses.get(
+        ip_query = self.network_client.public_ip_addresses.get(
             self.group_name, self.public_ip_name
         )
 
-        self.public_ip = ipQuery.ip_address
+        self.public_ip = ip_query.ip_address

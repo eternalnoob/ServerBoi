@@ -6,16 +6,16 @@ def hi():
 def help():
 
     msg = """
-
+    I can't help you
     """
 
     return msg
 
 
-def all_status(server_objects):
+def list_servers(server_objects):
+    msg = "Current managed servers: \n"
 
-    msg = f"""Servers Status:
-
-    """
+    for server in server_objects.values():
+        msg += f"ID: {server.server_id} | Name: {server.server_name} | Game: {server.game} | IP: {server.public_ip} | Status: {server.server_manage('status')}\n"
 
     return msg

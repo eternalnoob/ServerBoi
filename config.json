@@ -1,21 +1,24 @@
 {
-    "Servers" : {
-        "Game": "valheim",
-        "Name": "server_name",
-        "Server_Info": {
-
-        },
-        "Service": "aws",
-        "Service_Info": {
-            "Account": "account#",
-            "Region": "us-west-2",
-            "InstanceId": ""
+    "Servers" : [
+        {
+            "Game": "valheim",
+            "Name": "Escape Discord Server",
+            "ServerInfo": {
+                "Password" : "yeetus",
+                "Port" : "2457"
+            },
+            "Service": "aws",
+            "ServiceInfo": {
+                "AccountId": "576187103674",
+                "Region": "us-west-1",
+                "InstanceId": "i-044e820ec4e8b0335"
+            }
         }
-    },
+    ],
     "Metadata" : {
-        "Operations_Account": "account#",
+        "Operations_Account": "742762521158",
         "Supported_Games": [
-            "vaiheim"
+            "valheim"
         ]
     }
 }

@@ -1,5 +1,6 @@
-import commands.fun as fun
-import commands.general_commands as general
+import lib.commands.fun as fun
+import lib.commands.general_commands as general
+import lib.commands.server_manage as server
 
 
 class help_command(object):
@@ -10,6 +11,26 @@ class help_command(object):
     def read_command(self, command):
 
         return general.help()
+
+
+class list_command(object):
+    def __init__(self):
+
+        self.commands = None
+
+    def read_command(self, command, server_objects):
+
+        return general.list_servers(server_objects)
+
+
+class server_command(object):
+    def __init__(self):
+
+        self.commands = None
+
+    def read_command(self, command, server_objects):
+
+        return server.server_manage(command, server_objects)
 
 
 class fun_command(object):
@@ -57,6 +78,8 @@ def get_command_dict():
         "help": help_command(),
         "hi": hi_command(),
         "nou": fun_command(),
+        "list": list_command(),
+        "server": server_command(),
     }
 
     return command_dict
