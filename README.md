@@ -10,10 +10,10 @@ In `get_command_dict()` in `message_routing.py` contains a dict with the command
 
 ### Current Commands
 
-list | list all currently managed servers
-server <server_id> start | Starts server. Admin only.
-server <server_id> stop | Stops server. Admin only.
-server <server_id> reboot | Reboots server. Admin only.
-server <server_id> status | Returns servers status.
-server <server_id> ip | Returns servers ip.
-server <server_id> info | Returns server info.
+* list | list all currently managed servers
+* server <server_id> start | Starts server. Admin only.
+* server <server_id> stop | Stops server. Admin only.
+* server <server_id> reboot | Reboots server. Admin only.
+* server <server_id> status | Returns servers status.
+* server <server_id> ip | Returns servers ip.
+* server <server_id> info | Returns server info.
