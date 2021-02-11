@@ -70,11 +70,11 @@ class aws_server(server_object):
 
     def server_manage(self, action):
 
+        self.get_server_instance_object()
+
         if action == "start":
 
             self.instance.start()
-
-            self.state = self.server_manage("status")  # pending
 
             while self.instance.state == "pending":
 
@@ -96,15 +96,9 @@ class aws_server(server_object):
 
                 time.sleep(1)
 
-            self.refresh_public_ip()
-
         if action == "status":
 
             return self.instance.state["Name"]
-
-    def refresh_public_ip(self):
-
-        self.public_ip = self.instance.public_ip_address
 
 
 class gcp_server(server_object):
