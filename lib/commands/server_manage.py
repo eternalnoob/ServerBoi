@@ -1,5 +1,9 @@
-def server_manage(command, server_objects):
-    server = server_objects[str(command[1])]
+def server_manage(message, server_objects):
+    message_split = message.content.split(" ")
+    command = message.content
+
+    server = server_objects[str(message_split[1])]
+
     if "start" in command:
         server.server_manage("start")
         msg = (

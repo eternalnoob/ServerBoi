@@ -15,11 +15,11 @@ client = discord.Client()
 
 server_set = {}
 
+with open("config.json") as config_file:
+    config = json.load(config_file)
 
-def load_config():
-    with open("config.json") as config_file:
-        config = json.load(config_file)
-    return config
+admins = config["Admins"]
+disallowed_channels = config["IgnoredChannels"]
 
 
 def create_server_object(server_id, server):
@@ -56,23 +56,10 @@ async def on_ready():
 @client.event
 async def on_message(message):
     print(
-        f"[Message Recieved] Message from {message.author} in {message.channel}: {message.content}"
+        f"[Message Recieved] Message from {message.author.id} in {message.channel}: {message.content}"
     )
 
-    disallowedChannels = [
-        170364850256609280,
-        666432608539901963,
-        453802459379269633,
-        278255133891100673,
-        316003727506931713,
-        585951696753131520,
-        616679427979476994,
-        711488008351645758,
-        186263688603369473,
-        698658837447704707,
-    ]
-
-    if message.channel.id in (disallowedChannels):
+    if message.channel.id in (disallowed_channels):
         return
 
     if message.author == client.user:
@@ -83,23 +70,21 @@ async def on_message(message):
     command = message_split[0]
 
     if command in command_dict.keys():
-        msg = command_dict[command].read_command(message_split, server_set)
+        msg = command_dict[command].read_command(message, server_set, admins)
         msg.format(message)
         await message.channel.send(msg)
     else:
-        msg = command_dict["nou"].read_command(message)
+        msg = command_dict["fun"].read_command(message, server_set, admins)
         msg.format(message)
         await message.channel.send(msg)
 
 
 if __name__ == "__main__":
-    config = load_config()
     servers = config["Servers"]
 
     server_id = 0
 
     for server_entry in servers:
-        print(server_entry)
         server_object = create_server_object(server_id, server_entry)
         server_set[str(server_id)] = server_object
         server_id += 1
