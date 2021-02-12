@@ -218,9 +218,9 @@ class azure_server(server_object):
     def azure_credentials():
 
         credentials = ServicePrincipalCredentials(
-            client_id="288e1135-fea8-488a-ba71-f71f84a229e6",
-            secret=".la2WpgER.Rxe_-exgi_8Lm4OU.dKI9P30",
-            tenant="84bd82a8-13a5-4f9e-b5af-66c05512e76c",
+            client_id="",
+            secret="",
+            tenant="",
         )
 
         return credentials
