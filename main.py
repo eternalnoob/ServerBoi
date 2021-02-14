@@ -89,7 +89,7 @@ async def on_message(message):
 
         if lowered_message in command_tree_dict:
             print("Creating new conversation")
-            command_tree = command_tree_dict[message.content]()
+            command_tree = command_tree_dict[message.content]
             new_conversation = Interaction(
                 message.author.id, message.channel.id, command_tree
             )
