@@ -1,3 +1,6 @@
+import asyncio
+
+
 def hi():
 
     return "Hi. Give me a command. You can say help to view available actions. If I don't respond to a message, you probably typed it wrong"
@@ -15,6 +18,9 @@ def help():
     server <server_id> ip | Returns servers ip.
     server <server_id> info | Returns server info.
 
+    Commands in development
+    add server | adds a new server to tracking.
+
     """
 
     return msg
@@ -24,6 +30,11 @@ def list_servers(server_objects):
     msg = "Current managed servers: \n"
 
     for server in server_objects.values():
-        msg += f"ID: {server.server_id} | Name: {server.server_name} | Game: {server.game} | IP: {server.public_ip}:{server.server_info['Port']} | Status: {server.server_manage('status')}\n"
+        msg += f"ID: {server.server_id} | Name: {server.server_name} | Game: {server.game} | "
+
+        if server.public_ip != None:
+            msg += f"IP: {server.public_ip}:{server.server_info['Port']} | "
+
+        msg += f"Status: {server.server_manage('status')}\n"
 
     return msg

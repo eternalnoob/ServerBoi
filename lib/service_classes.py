@@ -16,15 +16,10 @@ class server_object(object):
     def __init__(self, server_id, Game, Name, ServerInfo, Service, ServiceInfo):
 
         self.server_id = server_id
-
         self.game = Game
-
         self.server_name = Name
-
         self.server_info = ServerInfo
-
         self.service = Service
-
         self.service_info = ServerInfo
 
 
@@ -32,13 +27,9 @@ class aws_server(server_object):
     def __init__(self, server_id, Game, Name, ServerInfo, Service, ServiceInfo):
 
         super().__init__(server_id, Game, Name, ServerInfo, Service, ServiceInfo)
-
         self.instance_id = ServiceInfo["InstanceId"]
-
         self.region = ServiceInfo["Region"]
-
         self.account_id = ServiceInfo["AccountId"]
-
         self.get_server_instance_object()
 
     def get_server_instance_object(self):

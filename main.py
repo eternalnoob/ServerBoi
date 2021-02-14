@@ -5,6 +5,7 @@ import json
 import os
 import lib.message_routing as routing
 import lib.service_classes as services
+from lib.commands.commands_objects import Interaction
 
 # Load Discord token
 load_dotenv()
@@ -20,6 +21,7 @@ with open("config.json") as config_file:
 
 admins = config["Admins"]
 disallowed_channels = config["IgnoredChannels"]
+conversations = {}
 
 
 def create_server_object(server_id, server):
@@ -33,12 +35,11 @@ def create_server_object(server_id, server):
     return server
 
 
-# Main loops
+# Main loop
 def main():
 
     event_loop = asyncio.get_event_loop()
     try:
-        # event_loop.create_task(check_for_processes(processes_to_check))
         client.run(TOKEN)
         event_loop.run_forever()
     except KeyboardInterrupt:
@@ -65,18 +66,45 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    message.content = message.content.lower()
-    message_split = message.content.split(" ")
-    command = message_split[0]
+    conversation_key = f"{message.author.id}-{message.channel.id}"
 
-    if command in command_dict.keys():
-        msg = command_dict[command].read_command(message, server_set, admins)
+    print(f"Conversation Key: {conversation_key}")
+
+    if conversation_key in conversations:
+        print("Existing conversation")
+        print(
+            f"Current tree stage: {conversations[conversation_key].command_tree.current_stage}"
+        )
+        msg = conversations[conversation_key].command_tree.read_input(message)
+        if conversations[conversation_key].command_tree.locked:
+            conversations.pop(conversation_key)
         msg.format(message)
         await message.channel.send(msg)
+
     else:
-        msg = command_dict["fun"].read_command(message, server_set, admins)
-        msg.format(message)
-        await message.channel.send(msg)
+        print("Conversation not existing. Checking if valid command")
+        lowered_message = message.content.lower()
+        message_split = lowered_message.split(" ")
+        command = message_split[0]
+
+        if lowered_message in command_tree_dict:
+            print("Creating new conversation")
+            command_tree = command_tree_dict[message.content]()
+            new_conversation = Interaction(
+                message.author.id, message.channel.id, command_tree
+            )
+            conversations[conversation_key] = new_conversation
+            msg = new_conversation.command_tree.read_input(message)
+            msg.format(message)
+            await message.channel.send(msg)
+        elif command in command_dict:
+            msg = command_dict[command].read_command(message, server_set, admins)
+            msg.format(message)
+            await message.channel.send(msg)
+        else:
+            msg = command_dict["fun"].read_command(message, server_set, admins)
+            msg.format(message)
+            await message.channel.send(msg)
 
 
 if __name__ == "__main__":
@@ -90,4 +118,5 @@ if __name__ == "__main__":
         server_id += 1
 
     command_dict = routing.get_command_dict()
+    command_tree_dict = routing.get_command_tree_dict()
     main()

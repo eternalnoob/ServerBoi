@@ -1,6 +1,8 @@
 import lib.commands.fun as fun
 import lib.commands.general_commands as general
 import lib.commands.server_manage as server
+from lib.commands.command_trees.add_server_tree import AddServerTree
+import asyncio
 
 
 class help_command(object):
@@ -81,6 +83,12 @@ class hi_command(object):
         return general.hi()
 
 
+class add_command(object):
+    async def read_command(self, command, server_objects, admins):
+
+        return await general.add_server(command)
+
+
 def get_command_dict():
     command_dict = {
         "help": help_command(),
@@ -91,3 +99,11 @@ def get_command_dict():
     }
 
     return command_dict
+
+
+def get_command_tree_dict():
+    command_tree_dict = {
+        "add server": AddServerTree,
+    }
+
+    return command_tree_dict
