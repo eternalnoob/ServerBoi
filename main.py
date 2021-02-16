@@ -1,10 +1,9 @@
 import discord
 from dotenv import load_dotenv
 import asyncio
-import json
 import os
+import lib.server_management as server
 import lib.message_routing as routing
-import lib.service_classes as services
 from lib.commands.commands_objects import Interaction
 
 # Load Discord token
@@ -13,26 +12,6 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 # Start Discord client
 client = discord.Client()
-
-server_set = {}
-
-with open("config.json") as config_file:
-    config = json.load(config_file)
-
-admins = config["Admins"]
-disallowed_channels = config["IgnoredChannels"]
-conversations = {}
-
-
-def create_server_object(server_id, server):
-    if server["Service"] == "aws":
-        server = services.aws_server(server_id, **server)
-    elif server["Service"] == "gcp":
-        server = services.gcp_server(server_id, **server)
-    elif server["Service"] == "azure":
-        server = services.azure_server(server_id, **server)
-
-    return server
 
 
 # Main loop
@@ -57,7 +36,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
     print(
-        f"[Message Recieved] Message from {message.author.id} in {message.channel}: {message.content}"
+        f"[Message Recieved] Message from {message.author} in {message.channel}: {message.content}"
     )
 
     if message.channel.id in (disallowed_channels):
@@ -82,7 +61,7 @@ async def on_message(message):
         await message.channel.send(msg)
 
     else:
-        print("Conversation not existing. Checking if valid command")
+        print("Conversation doesnt exist. Checking if valid command")
         lowered_message = message.content.lower()
         message_split = lowered_message.split(" ")
         command = message_split[0]
@@ -103,19 +82,22 @@ async def on_message(message):
             await message.channel.send(msg)
         else:
             msg = command_dict["fun"].read_command(message, server_set, admins)
-            msg.format(message)
-            await message.channel.send(msg)
+            # Only send message if response comes back as str
+            if isinstance(msg, str):
+                msg.format(message)
+                await message.channel.send(msg)
 
 
 if __name__ == "__main__":
+    config = server.get_config()
+
+    admins = config["Admins"]
+    disallowed_channels = config["IgnoredChannels"]
+    conversations = {}
+
     servers = config["Servers"]
 
-    server_id = 0
-
-    for server_entry in servers:
-        server_object = create_server_object(server_id, server_entry)
-        server_set[str(server_id)] = server_object
-        server_id += 1
+    server_set = server.create_server_objects(servers)
 
     command_dict = routing.get_command_dict()
     command_tree_dict = routing.get_command_tree_dict()
